@@ -19,8 +19,9 @@ option(IMGUI_WITH_BACKEND
 )
 
 # TODO: Validate configurations based on the given input combination
-# TODO: Add support for other platforms WIN32, SDL, GLFW, GLUT, ANDROID, APPLE, ALLEGRO5
-set(IMGUI_BACKEND_PLATFORM "WIN32" CACHE STRING "")
+# TODO: Add support for other platforms SDL, ANDROID, APPLE, ALLEGRO5
+# DONE: added support for platform GLFW and backends GLUT and OpenGL2/3 
+set(IMGUI_BACKEND_PLATFORM "GLFW" CACHE STRING "")
 
 
 ##################################################################################################################
@@ -43,5 +44,17 @@ cmake_dependent_option(IMGUI_BACKEND_DX11
 )
 cmake_dependent_option(IMGUI_BACKEND_DX12
   "Set to ON to include DX12 backend files." OFF
+  "IMGUI_WITH_BACKEND" ON
+)
+cmake_dependent_option(IMGUI_BACKEND_GLUT
+  "Set to ON to include GLUT backend files." OFF
+  "IMGUI_WITH_BACKEND" ON
+)
+cmake_dependent_option(IMGUI_BACKEND_OPENGL2
+  "Set to ON to include OpenGL2 backend files." OFF
+  "IMGUI_WITH_BACKEND" ON
+)
+cmake_dependent_option(IMGUI_BACKEND_OPENGL3
+  "Set to ON to include OpenGL3 backend files." OFF
   "IMGUI_WITH_BACKEND" ON
 )

@@ -10,7 +10,7 @@ include(CMakeOptions.cmake)
 # PROJECT
 ##################################################################################################################
 
-set(imgui_VERSION 1.88.0)
+set(imgui_VERSION 1.90.7)
 
 project(imgui
   VERSION ${imgui_VERSION}
@@ -18,6 +18,8 @@ project(imgui
   DESCRIPTION "Build ImGui as shared or static library."
   HOMEPAGE_URL "https://github.com/ocornut/imgui"
 )
+
+include(GNUInstallDirs)
 
 set(CMAKE_VERBOSE_MAKEFILE TRUE CACHE BOOL "" FORCE)
 
@@ -68,6 +70,12 @@ if(IMGUI_WITH_BACKEND)
     list(APPEND PUBLIC_H_FILES ${BACKENDS_DIR}/imgui_impl_win32.h)
     list(APPEND PUBLIC_CXX_FILES ${BACKENDS_DIR}/imgui_impl_win32.cpp)
   endif()
+  if("${IMGUI_BACKEND_PLATFORM}" STREQUAL "GLFW")
+    find_package(glfw3 REQUIRED)
+    message(STATUS "[ImGui] Including backend platform: [GLFW]")
+    list(APPEND PUBLIC_H_FILES ${BACKENDS_DIR}/imgui_impl_glfw.h)
+    list(APPEND PUBLIC_CXX_FILES ${BACKENDS_DIR}/imgui_impl_glfw.cpp)
+  endif()
 
   if(IMGUI_BACKEND_DX9)
     message(STATUS "[ImGui] Including backend api: [Direct3D9]")
@@ -94,6 +102,24 @@ if(IMGUI_WITH_BACKEND)
     list(APPEND IMGUI_INTERFACE_LIBS d3d12)
     list(APPEND IMGUI_INTERFACE_LIBS dxgi)
     # list(APPEND IMGUI_INTERFACE_LIBS d3dcompiler)
+  endif()
+  if(IMGUI_BACKEND_GLUT)
+    message(STATUS "[ImGui] Including backend api: [GLUT]")
+    list(APPEND PUBLIC_H_FILES ${BACKENDS_DIR}/imgui_impl_glut.h)
+    list(APPEND PUBLIC_CXX_FILES ${BACKENDS_DIR}/imgui_impl_glut.cpp)
+    list(APPEND IMGUI_INTERFACE_LIBS glut)
+  endif()
+  if(IMGUI_BACKEND_OPENGL2)
+    message(STATUS "[ImGui] Including backend api: [OpenGL2]")
+    list(APPEND PUBLIC_H_FILES ${BACKENDS_DIR}/imgui_impl_opengl2.h)
+    list(APPEND PUBLIC_CXX_FILES ${BACKENDS_DIR}/imgui_impl_opengl2.cpp)
+    list(APPEND IMGUI_INTERFACE_LIBS opengl2)
+  endif()
+  if(IMGUI_BACKEND_OPENGL3)
+    message(STATUS "[ImGui] Including backend api: [OpenGL3]")
+    list(APPEND PUBLIC_H_FILES ${BACKENDS_DIR}/imgui_impl_opengl3.h)
+    list(APPEND PUBLIC_CXX_FILES ${BACKENDS_DIR}/imgui_impl_opengl3.cpp)
+    list(APPEND IMGUI_INTERFACE_LIBS opengl3)
   endif()
 endif()
 
@@ -141,6 +167,52 @@ if(IMGUI_BACKEND_DX12)
   target_compile_definitions(${PROJECT_NAME} PRIVATE ImTextureID=ImU64)
 endif()
 
+if(APPLE)
+  execute_process(
+    COMMAND brew --prefix
+    OUTPUT_VARIABLE HOMEBREW_PREFIX
+  )
+  string(REGEX REPLACE "\n$" "" HOMEBREW_PREFIX "${HOMEBREW_PREFIX}")
+  target_include_directories(${PROJECT_NAME}
+    PUBLIC
+      ${HOMEBREW_PREFIX}/include
+  )
+  target_link_directories(${PROJECT_NAME}
+    PUBLIC
+      ${HOMEBREW_PREFIX}/lib
+  )
+endif()
+if(IMGUI_BACKEND_GLFW)
+  message("111")
+  find_package(glfw3 REQUIRED)
+  target_link_libraries(${PROJECT_NAME}
+    PRIVATE
+      glfw3
+  )
+endif()
+if(IMGUI_BACKEND_GLUT)
+  find_package(GLUT REQUIRED)
+  target_link_libraries(${PROJECT_NAME}
+    PRIVATE
+      GLUT
+  )
+endif()
+if(IMGUI_BACKEND_OPENGL2)
+  find_package(OpenGL REQUIRED)
+  target_link_libraries(${PROJECT_NAME}
+    PRIVATE
+      ${OPENGL_LIBRARIES}
+  )
+endif()
+if(IMGUI_BACKEND_OPENGL3)
+  find_package(OpenGL REQUIRED)
+  target_link_libraries(${PROJECT_NAME}
+    PRIVATE
+      ${OPENGL_LIBRARIES}
+  )
+endif()
+
+
 target_compile_options(${PROJECT_NAME}
   PUBLIC
     $<$<CXX_COMPILER_ID:MSVC>:$<$<CONFIG:Debug>:/MTd>>
@@ -186,13 +258,15 @@ install(FILES ${FONTS_FILES}
 if(MSVC)
   if(IMGUI_STATIC_LIBRARY)
     install(FILES ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/$<TARGET_FILE_BASE_NAME:${PROJECT_NAME}>.pdb
-      DESTINATION lib
-      CONFIGURATIONS Debug OR RelWithDebInfo
+      DESTINATION ${CMAKE_INSTALL_LIBDIR}
+      COMPONENT lib
+      OPTIONAL
     )
   else()
     install(FILES $<TARGET_PDB_FILE:${PROJECT_NAME}>
-      DESTINATION bin
-      CONFIGURATIONS Debug OR RelWithDebInfo
+      DESTINATION ${CMAKE_INSTALL_BINDIR}
+      COMPONENT bin
+      OPTIONAL
     )
   endif()
 endif()
