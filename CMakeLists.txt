@@ -19,6 +19,8 @@ project(imgui
   HOMEPAGE_URL "https://github.com/ocornut/imgui"
 )
 
+include(GNUInstallDirs)
+
 set(CMAKE_VERBOSE_MAKEFILE TRUE CACHE BOOL "" FORCE)
 
 # Note that for multi-config generators, we don't need to set CMAKE_BUILD_TYPE.
@@ -186,13 +188,15 @@ install(FILES ${FONTS_FILES}
 if(MSVC)
   if(IMGUI_STATIC_LIBRARY)
     install(FILES ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/$<TARGET_FILE_BASE_NAME:${PROJECT_NAME}>.pdb
-      DESTINATION lib
-      CONFIGURATIONS Debug OR RelWithDebInfo
+      DESTINATION ${CMAKE_INSTALL_LIBDIR}
+      COMPONENT lib
+      OPTIONAL
     )
   else()
     install(FILES $<TARGET_PDB_FILE:${PROJECT_NAME}>
-      DESTINATION bin
-      CONFIGURATIONS Debug OR RelWithDebInfo
+      DESTINATION ${CMAKE_INSTALL_BINDIR}
+      COMPONENT bin
+      OPTIONAL
     )
   endif()
 endif()
