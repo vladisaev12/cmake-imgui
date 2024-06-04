@@ -10,7 +10,7 @@ include(CMakeOptions.cmake)
 # PROJECT
 ##################################################################################################################
 
-set(imgui_VERSION 1.88.0)
+set(imgui_VERSION 1.90.7)
 
 project(imgui
   VERSION ${imgui_VERSION}
